@@ -6,11 +6,19 @@ def create_app():
     # creating the application
     app = Flask(__name__, instance_relative_config=True)
 
+    # if it's a development environment, turn on debug logging
+    if app.env == 'development':
+        logging.basicConfig(level=logging.DEBUG)
+
     # making sure that instance folder exists
     try:
         os.makedirs(app.instance_path)
     except OSError:
         pass
+
+    # load in app configuration
+    from api import config
+    app.config.from_object(config.Config)
 
     register_errors(app)
     register_blueprints(app)

@@ -21,3 +21,4 @@ def get_order(order_id):
 @bp.route('/<int:order_id>', methods=['PUT'])
 def update_order(order_id):
     logging.debug(f'incoming request: PUT /orders/{order_id}')
+    abort(501)
