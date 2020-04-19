@@ -17,8 +17,11 @@ def create_app():
         pass
 
     # load in app configuration
-    from api import config
+    from . import config
     app.config.from_object(config.Config)
+
+    from . import db
+    db.init_app(app)
 
     register_errors(app)
     register_blueprints(app)
@@ -39,6 +42,6 @@ def register_errors(app):
         return make_response(jsonify({'error': 'Method not implemented'}), 501)
 
 def register_blueprints(app):
-    from api import widgets, orders
+    from . import widgets, orders
     app.register_blueprint(widgets.bp)
     app.register_blueprint(orders.bp)

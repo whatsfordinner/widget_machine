@@ -6,6 +6,6 @@ class Config:
 
     # Database configuration
     DB_HOST = os.environ.get('WIDGET_DB_HOST', 'localhost')
-    DB_USER = os.environ.get('WIDGET_DB_USER', '')
-    DB_PASS = os.environ.get('WIDGET_DB_PASS', '')
-
+    DB_USER = os.environ.get('WIDGET_DB_USER', 'widgets')
+    DB_PASS = os.environ.get('WIDGET_DB_PASS', 'password')
+    DB_NAME = os.environ.get('WIDGET_DB_NAME', 'widgets')

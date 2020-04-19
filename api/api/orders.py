@@ -1,11 +1,14 @@
 import logging
 from flask import abort, Blueprint
+from .db import get_db
 
 bp = Blueprint('orders', __name__, url_prefix='/orders')
 
 @bp.route('/', methods=['GET'])
 def get_orders():
     logging.debug('incoming request: GET /orders')
+    db = get_db()
+
     abort(501)
 
 @bp.route('/', methods=['POST'])
