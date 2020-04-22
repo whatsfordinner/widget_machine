@@ -1,6 +1,6 @@
 import logging
 from flask import abort, Blueprint
-from . import db
+from api import db
 
 bp = Blueprint('widgets', __name__, url_prefix='/widgets')
 
