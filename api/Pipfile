@@ -4,8 +4,8 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-coverage = "*"
 docker = "*"
+coverage = "*"
 
 [packages]
 click = "==7.0"
@@ -16,7 +16,6 @@ Jinja2 = "==2.10.3"
 MarkupSafe = "==1.1.1"
 Werkzeug = "==0.16.0"
 mysql-connector-python = "*"
-coverage = "*"
 
 [requires]
 python_version = "3.8"
