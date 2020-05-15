@@ -3,25 +3,41 @@ CREATE DATABASE IF NOT EXISTS widgets;
 USE widgets;
 
 CREATE TABLE widgets (
-    widgetid INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    widgetname VARCHAR(20) NOT NULL
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(20) NOT NULL,
+    quantity INT DEFAULT 0
 );
 
-INSERT INTO widgets (widgetname) VALUES
-    ('fizzbotter'),
-    ('woozle'),
-    ('gewgaw'),
-    ('trinket')
+INSERT INTO widgets (
+    name,
+    quantity
+) VALUES
+    (
+        'fizzbotter',
+        2
+    ),
+    (
+        'woozle',
+        5
+    ),
+    (
+        'gewgaw',
+        1
+    ),
+    (
+        'trinket',
+        0
+    )
 ;
 
 CREATE TABLE orders (
-    orderid INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     widgetid INT NOT NULL,
     quantity INT NOT NULL,
     createdon TIMESTAMP NOT NULL,
     fulfilledon TIMESTAMP,
     FOREIGN KEY (widgetid)
-        REFERENCES widgets(widgetid)
+        REFERENCES widgets(id)
 );
 
 INSERT INTO orders (
