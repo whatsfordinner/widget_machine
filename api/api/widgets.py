@@ -1,5 +1,5 @@
 import logging
-from flask import abort, Blueprint
+from flask import abort, Blueprint, request
 from api import db
 
 bp = Blueprint('widgets', __name__, url_prefix='/widgets')
@@ -11,11 +11,6 @@ def get_widgets():
     return {
         'widgets': result
     }
-
-@bp.route('/', methods=['POST'])
-def new_widget():
-    logging.debug('incoming request: POST /widgets')
-    abort(501)
 
 @bp.route('/<int:widget_id>', methods=['GET'])
 def get_widget(widget_id):
@@ -29,7 +24,47 @@ def get_widget(widget_id):
             'widget': result[0]
         }
 
-@bp.route('/<int:widget_id>', methods=['PUT'])
+@bp.route('/', methods=['POST'])
+def new_widget():
+    logging.debug('incoming request: POST /widgets')
+    post_data = request.get_json()
+
+    if post_data is None or 'widget' not in post_data:
+        abort(415)
+    
+    widget_data = post_data['widget']
+
+    if 'name' not in widget_data:
+        abort(415)
+    
+    # check to see if a widget with that name already exists
+    result = get_widgets_from_db(widget_name=widget_data['name'])
+    if len(result) != 0:
+        abort(422)
+
+    # check to see if a quantity was specified
+    if 'quantity' in widget_data:
+        quantity = widget_data['quantity']
+    else:
+        quantity = 0
+    
+    # widget doesn't exist arleady so let's insert it
+    db_conn = db.get_db()
+    query = 'INSERT INTO widgets (name, quantity) VALUES (%(widget_name)s, %(widget_quantity)s)'
+    params = {
+        'widget_name': widget_data['name'],
+        'widget_quantity': quantity
+    }
+    logging.info(f'createing new widget: {params}')
+    db_conn.execute_query(query, params)
+
+    # get newly created widget and return it
+    result = get_widgets_from_db(widget_name=widget_data['name'])
+    return {
+        'widget': result[0]
+    }
+
+@bp.route('/<int:widget_id>', methods=['PATCH'])
 def update_widget(widget_id):
     logging.debug(f'incoming request: PUT /widgets/{widget_id}')
     abort(501)
@@ -48,7 +83,7 @@ def get_widgets_from_db(
         
     # query by widget name
     elif widget_name is not None:
-        logging.debug(f'querying for widget by name: {widget_id}')
+        logging.debug(f'querying for widget by name: {widget_name}')
         query = 'SELECT id, name, quantity FROM widgets WHERE name = %(widget_name)s'
         params = {
             'widget_name': widget_name

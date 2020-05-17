@@ -28,6 +28,8 @@ class DatabaseConnection:
 
         cursor.close()
 
+        self.cnx.commit()
+
         return results
 
 def get_db():
