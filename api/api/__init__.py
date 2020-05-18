@@ -1,14 +1,15 @@
 import logging
 import os
 from flask import Flask, jsonify, make_response
+from logging.config import dictConfig
 
 def create_app():
+    configure_logging()
     # creating the application
     app = Flask(__name__, instance_relative_config=True)
 
-    # if it's a development environment, turn on debug logging
     if app.env == 'development':
-        logging.basicConfig(level=logging.DEBUG)
+        logging.getLogger().setLevel(logging.DEBUG)
 
     # making sure that instance folder exists
     try:
@@ -45,3 +46,20 @@ def register_blueprints(app):
     from api import widgets, orders
     app.register_blueprint(widgets.bp)
     app.register_blueprint(orders.bp)
+
+def configure_logging():
+    dictConfig({
+        'version': 1,
+        'formatters': {'default': {
+            'format': '%(asctime)s %(levelname)s [%(name)s] %(message)s',
+        }},
+        'handlers': {'wsgi': {
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://flask.logging.wsgi_errors_stream',
+            'formatter': 'default'
+        }},
+        'root': {
+            'level': 'INFO',
+            'handlers': ['wsgi']
+        }
+    })

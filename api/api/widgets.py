@@ -3,10 +3,11 @@ from flask import abort, Blueprint, request
 from api import db
 
 bp = Blueprint('widgets', __name__, url_prefix='/widgets')
+logger = logging.getLogger(__name__)
 
 @bp.route('/', methods=['GET'])
 def get_widgets():
-    logging.debug('incoming request: GET /widgets')
+    logger.debug('incoming request: GET /widgets')
     result = get_widgets_from_db()
     return {
         'widgets': result
@@ -14,7 +15,7 @@ def get_widgets():
 
 @bp.route('/<int:widget_id>', methods=['GET'])
 def get_widget(widget_id):
-    logging.debug(f'incoming request: GET /widgets/{widget_id}')
+    logger.debug(f'incoming request: GET /widgets/{widget_id}')
     result = get_widgets_from_db(widget_id=widget_id)
 
     if len(result) == 0:
@@ -26,8 +27,9 @@ def get_widget(widget_id):
 
 @bp.route('/', methods=['POST'])
 def new_widget():
-    logging.debug('incoming request: POST /widgets')
+    logger.debug('incoming request: POST /widgets')
     post_data = request.get_json()
+    logger.debug(f'new widget POST data: {post_data}')
 
     if post_data is None or 'widget' not in post_data:
         abort(415)
@@ -55,7 +57,7 @@ def new_widget():
         'widget_name': widget_data['name'],
         'widget_quantity': quantity
     }
-    logging.info(f'createing new widget: {params}')
+    logger.info(f'createing new widget: {params}')
     db_conn.execute_query(query, params)
 
     # get newly created widget and return it
@@ -66,7 +68,7 @@ def new_widget():
 
 @bp.route('/<int:widget_id>', methods=['PATCH'])
 def update_widget(widget_id):
-    logging.debug(f'incoming request: PUT /widgets/{widget_id}')
+    logger.debug(f'incoming request: PUT /widgets/{widget_id}')
     abort(501)
     
 def get_widgets_from_db(
@@ -75,7 +77,7 @@ def get_widgets_from_db(
 ):
     # prioritise searching by widget ID
     if widget_id is not None:
-        logging.debug(f'querying for widget by ID: {widget_id}')
+        logger.debug(f'querying for widget by ID: {widget_id}')
         query = 'SELECT id, name, quantity FROM widgets WHERE id = %(widget_id)s'
         params = {
             'widget_id': widget_id
@@ -83,7 +85,7 @@ def get_widgets_from_db(
         
     # query by widget name
     elif widget_name is not None:
-        logging.debug(f'querying for widget by name: {widget_name}')
+        logger.debug(f'querying for widget by name: {widget_name}')
         query = 'SELECT id, name, quantity FROM widgets WHERE name = %(widget_name)s'
         params = {
             'widget_name': widget_name
@@ -91,10 +93,11 @@ def get_widgets_from_db(
     
     # query against all widgets
     else:
-        logging.debug('querying for all widgets')
+        logger.debug('querying for all widgets')
         query = 'SELECT id, name, quantity FROM widgets'
         params = {}
 
     db_conn = db.get_db()
     result = db_conn.execute_query(query, params)
+    logger.debug(f'{len(result)} widgets returned')
     return result

@@ -52,3 +52,29 @@ class GetWidgetTestCase(unittest.TestCase):
         result = widgets.get_widget(1)
         self.assertIsNone(result)
         mock_abort.assert_called_with(404)
+
+class NewWidgetTestCase(unittest.TestCase):
+    def test_no_widget_data(self):
+        self.assertTrue(False)
+
+    def test_malformed_widget_data(self):
+        self.assertTrue(False)
+
+    def test_widget_already_exists(self):
+        self.assertTrue(False)
+
+    def test_create_widget(self):
+        self.assertTrue(False)
+
+class GetWidgetsFromDBTestCase(unittest.TestCase):
+    def test_no_params(self):
+        self.assertTrue(False)
+
+    def test_with_widget_name(self):
+        self.assertTrue(False)
+
+    def test_with_widget_id(self):
+        self.assertTrue(False)
+
+    def test_with_both(self):
+        self.assertTrue(False)

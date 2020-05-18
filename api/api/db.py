@@ -3,6 +3,8 @@ import mysql.connector
 from mysql.connector import errorcode
 from flask import current_app, g
 
+logger = logging.getLogger(__name__)
+
 class DatabaseConnection:
     def __init__(self):
         self.cnx = mysql.connector.connect(
@@ -20,6 +22,7 @@ class DatabaseConnection:
             dictionary=True
         )
 
+        logger.debug(f'executing query: {query} with params: {params}')
         cursor.execute(query, params)
 
         results = []
@@ -34,12 +37,12 @@ class DatabaseConnection:
 
 def get_db():
     if 'db' not in g:
-        logging.info('Establishing connection to DB')
+        logger.info('Establishing connection to DB')
         try:
             g.db = DatabaseConnection()
 
         except mysql.connector.Error as err:
-            logging.error(f'Unable to connect to DB: {err}')
+            logger.error(f'Unable to connect to DB: {err}')
             raise
 
     return g.db
