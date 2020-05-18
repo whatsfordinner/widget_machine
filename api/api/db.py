@@ -2,6 +2,7 @@ import logging
 import mysql.connector
 from mysql.connector import errorcode
 from flask import current_app, g
+from time import time_ns
 
 logger = logging.getLogger(__name__)
 
@@ -23,11 +24,16 @@ class DatabaseConnection:
         )
 
         logger.debug(f'executing query: {query} with params: {params}')
+        query_start = time_ns()
         cursor.execute(query, params)
+        query_total = round((time_ns() - query_start) / 1000)
 
+        aggregate_start = time_ns()
         results = []
         for result in cursor:
             results.append(result)
+        aggregate_total = round((time_ns() - aggregate_start) / 1000)
+        logger.info(f'query time: {query_total}us; aggregate time: {aggregate_total}us')
 
         cursor.close()
 
@@ -37,7 +43,7 @@ class DatabaseConnection:
 
 def get_db():
     if 'db' not in g:
-        logger.info('Establishing connection to DB')
+        logger.debug('Establishing connection to DB')
         try:
             g.db = DatabaseConnection()
 
@@ -51,6 +57,7 @@ def close_db(e=None):
     db = g.pop('db', None)
 
     if db is not None:
+        logger.debug('Closing connection to DB')
         db.close()
 
 def init_app(app):
