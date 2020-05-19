@@ -19,7 +19,7 @@ def get_widget(widget_id):
     result = get_widgets_from_db(widget_id=widget_id)
 
     if len(result) == 0:
-        abort(404)
+        abort(404, description=f'widget with ID {widget_id} not found')
     else:
         return {
             'widget': result[0]
@@ -32,23 +32,31 @@ def new_widget():
     logger.debug(f'new widget POST data: {post_data}')
 
     if post_data is None or 'widget' not in post_data:
-        abort(415)
+        abort(422, description='data object did not contain \'widget\' object')
     
     widget_data = post_data['widget']
 
+    # make sure a name has been specified and it's a string
     if 'name' not in widget_data:
-        abort(415)
+        abort(400, description='\'widget\' object did not have \'name\' attribute')
+
+    if not isinstance(widget_data['name'], str):
+        abort(422, 'widget name must be string')
+
+    # check to see if a quantity was specified
+    if 'quantity' in widget_data:
+        # is the specified quantity an integer
+        if not isinstance(widget_data['quantity'], int):
+            abort(422, 'quantity must be integer')
+        quantity = widget_data['quantity']
+    else:
+        quantity = 0
     
     # check to see if a widget with that name already exists
     result = get_widgets_from_db(widget_name=widget_data['name'])
     if len(result) != 0:
-        abort(422)
+        abort(422, f'widget with name \'{widget_data["name"]}\' already exists')
 
-    # check to see if a quantity was specified
-    if 'quantity' in widget_data:
-        quantity = widget_data['quantity']
-    else:
-        quantity = 0
     
     # widget doesn't exist arleady so let's insert it
     db_conn = db.get_db()
@@ -69,7 +77,7 @@ def new_widget():
 @bp.route('/<int:widget_id>', methods=['PATCH'])
 def update_widget(widget_id):
     logger.debug(f'incoming request: PUT /widgets/{widget_id}')
-    abort(501)
+    abort(501, description='not implemented')
     
 def get_widgets_from_db(
     widget_id=None,

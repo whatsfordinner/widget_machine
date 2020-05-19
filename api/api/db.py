@@ -24,16 +24,11 @@ class DatabaseConnection:
         )
 
         logger.debug(f'executing query: {query} with params: {params}')
-        query_start = time_ns()
         cursor.execute(query, params)
-        query_total = round((time_ns() - query_start) / 1000)
 
-        aggregate_start = time_ns()
         results = []
         for result in cursor:
             results.append(result)
-        aggregate_total = round((time_ns() - aggregate_start) / 1000)
-        logger.info(f'query time: {query_total}us; aggregate time: {aggregate_total}us')
 
         cursor.close()
 
