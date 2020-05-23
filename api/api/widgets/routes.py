@@ -1,6 +1,7 @@
 import logging
 from flask import abort, Blueprint, request
 from api import db
+from api.widgets import utils
 
 bp = Blueprint('widgets', __name__, url_prefix='/widgets')
 logger = logging.getLogger(__name__)
@@ -8,7 +9,9 @@ logger = logging.getLogger(__name__)
 @bp.route('/', methods=['GET'])
 def get_widgets():
     logger.debug('incoming request: GET /widgets')
-    result = get_widgets_from_db()
+    result = []
+    for r in db.get_db().get_widgets():
+        result.append(r)
     return {
         'widgets': result
     }
@@ -16,13 +19,13 @@ def get_widgets():
 @bp.route('/<int:widget_id>', methods=['GET'])
 def get_widget(widget_id):
     logger.debug(f'incoming request: GET /widgets/{widget_id}')
-    result = get_widgets_from_db(widget_id=widget_id)
+    result = db.get_db().get_widget_by_id(widget_id=widget_id)
 
     if len(result) == 0:
         abort(404, description=f'widget with ID {widget_id} not found')
     else:
         return {
-            'widget': result[0]
+            'widget': result
         }
 
 @bp.route('/', methods=['POST'])
@@ -53,59 +56,21 @@ def new_widget():
         quantity = 0
     
     # check to see if a widget with that name already exists
-    result = get_widgets_from_db(widget_name=widget_data['name'])
-    if len(result) != 0:
+    result = db.get_db().get_widget_by_name(widget_name=widget_data['name'])
+    if result is not None:
         abort(422, f'widget with name \'{widget_data["name"]}\' already exists')
 
     
     # widget doesn't exist arleady so let's insert it
-    db_conn = db.get_db()
-    query = 'INSERT INTO widgets (name, quantity) VALUES (%(widget_name)s, %(widget_quantity)s)'
-    params = {
-        'widget_name': widget_data['name'],
-        'widget_quantity': quantity
-    }
-    logger.info(f'createing new widget: {params}')
-    db_conn.execute_query(query, params)
+    new_id = db.get_db().insert_widget(widget_name=widget_data['name'], widget_quantity=quantity)
 
     # get newly created widget and return it
-    result = get_widgets_from_db(widget_name=widget_data['name'])
+    result = db.get_db().get_widget_by_id(widget_id=new_id)
     return {
-        'widget': result[0]
+        'widget': result
     }
 
 @bp.route('/<int:widget_id>', methods=['PATCH'])
 def update_widget(widget_id):
     logger.debug(f'incoming request: PUT /widgets/{widget_id}')
     abort(501, description='not implemented')
-    
-def get_widgets_from_db(
-    widget_id=None,
-    widget_name=None
-):
-    # prioritise searching by widget ID
-    if widget_id is not None:
-        logger.debug(f'querying for widget by ID: {widget_id}')
-        query = 'SELECT id, name, quantity FROM widgets WHERE id = %(widget_id)s'
-        params = {
-            'widget_id': widget_id
-        }
-        
-    # query by widget name
-    elif widget_name is not None:
-        logger.debug(f'querying for widget by name: {widget_name}')
-        query = 'SELECT id, name, quantity FROM widgets WHERE name = %(widget_name)s'
-        params = {
-            'widget_name': widget_name
-        }
-    
-    # query against all widgets
-    else:
-        logger.debug('querying for all widgets')
-        query = 'SELECT id, name, quantity FROM widgets'
-        params = {}
-
-    db_conn = db.get_db()
-    result = db_conn.execute_query(query, params)
-    logger.debug(f'{len(result)} widgets returned')
-    return result

@@ -17,6 +17,7 @@ MarkupSafe = "==1.1.1"
 Werkzeug = "==0.16.0"
 mysql-connector-python = "*"
 prometheus-client = "*"
+pugsql = "*"
 
 [requires]
 python_version = "3.8"
