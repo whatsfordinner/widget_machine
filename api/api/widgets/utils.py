@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 def get_schema(schema_name):
     schema_file_location = f'api/widgets/schemas/{schema_name}.json'
-    logging.debug(f'reading in schema file: {schema_file_location}')
+    logger.debug(f'reading in schema file: {schema_file_location}')
     with open(schema_file_location) as schema_file:
         schema_json = json.load(schema_file)
     
