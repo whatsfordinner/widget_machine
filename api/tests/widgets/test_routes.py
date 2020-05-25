@@ -77,16 +77,3 @@ class NewWidgetTestCase(unittest.TestCase):
 
     def test_create_widget(self):
         self.assertTrue(False)
-
-class GetWidgetsFromDBTestCase(unittest.TestCase):
-    def test_no_params(self):
-        self.assertTrue(False)
-
-    def test_with_widget_name(self):
-        self.assertTrue(False)
-
-    def test_with_widget_id(self):
-        self.assertTrue(False)
-
-    def test_with_both(self):
-        self.assertTrue(False)
