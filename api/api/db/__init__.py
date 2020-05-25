@@ -8,7 +8,7 @@ def get_db():
     if 'db' not in g:
         logger.debug('Establishing new connection to DB')
         g.db = pugsql.module('api/db/queries/')
-        g.db.connect(f'mysql+mysqlconnector://{current_app.config["DB_USER"]}:{current_app.config["DB_PASS"]}@{current_app.config["DB_HOST"]}/{current_app.config["DB_NAME"]}')
+        g.db.connect(f'mysql+pymysql://{current_app.config["DB_USER"]}:{current_app.config["DB_PASS"]}@{current_app.config["DB_HOST"]}/{current_app.config["DB_NAME"]}')
     return g.db
 
 def close_db(e=None):
