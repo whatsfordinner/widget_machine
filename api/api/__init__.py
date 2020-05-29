@@ -31,15 +31,15 @@ def create_app():
     from api import errors
     errors.register_errors(app)
 
-    # attaching prometheus WSGI
-    app_dispatcher = DispatcherMiddleware(
-        app,
+    return app
+
+def build_callable():
+    return DispatcherMiddleware(
+        create_app(),
         {
             '/metrics': make_wsgi_app()
         }
     )
-
-    return app_dispatcher
 
 def register_blueprints(app):
     logging.info('registering blueprints')

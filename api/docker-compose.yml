@@ -1,0 +1,27 @@
+version: "3.8"
+services:
+  api:
+    build:
+      context: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - "./api:/usr/src/app/api"
+    environment:
+      WIDGET_DB_HOST: database
+  database:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    volumes:
+      - "./scripts/db_init.sql:/docker-entrypoint-initdb.d/init_script.sql"
+  rabbitmq:
+    image: rabbitmq:3.8-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: widgets
+      RABBITMQ_DEFAULT_PASS: password
