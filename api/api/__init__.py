@@ -2,6 +2,8 @@ import logging
 import os
 from flask import Flask, jsonify, make_response
 from logging.config import dictConfig
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from prometheus_client import make_wsgi_app
 
 def create_app():
     configure_logging()
@@ -21,7 +23,6 @@ def create_app():
     from api import config
     app.config.from_object(config.Config)
 
-
     from api import db
     db.init_app(app)
 
@@ -30,7 +31,15 @@ def create_app():
     from api import errors
     errors.register_errors(app)
 
-    return app
+    # attaching prometheus WSGI
+    app_dispatcher = DispatcherMiddleware(
+        app,
+        {
+            '/metrics': make_wsgi_app()
+        }
+    )
+
+    return app_dispatcher
 
 def register_blueprints(app):
     logging.info('registering blueprints')

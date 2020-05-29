@@ -19,6 +19,7 @@ pugsql = "*"
 jsonschema = "*"
 prometheus-client = "*"
 pymysql = "*"
+cryptography = "*"
 
 [requires]
 python_version = "3.8"

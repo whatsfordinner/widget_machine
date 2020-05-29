@@ -1,17 +1,23 @@
 import logging
 from flask import abort, Blueprint, request
+from prometheus_client import Counter, Summary
 from api import db
 from api.widgets import utils, exceptions
 
 bp = Blueprint('widgets', __name__, url_prefix='/widgets')
 logger = logging.getLogger(__name__)
+prom_request_counter = Counter('http_api_requests', 'API Requests', ['method', 'endpoint'])
+prom_request_timer = Summary('http_api_requests_latency_seconds', 'Latency of requests to the API', ['method', 'endpoint'])
 
+@prom_request_timer.time('get', '/widgets/')
 @bp.route('/', methods=['GET'])
 def get_widgets():
     logger.debug('incoming request: GET /widgets')
     result = []
     for r in db.get_db().get_widgets():
         result.append(r)
+
+    prom_request_counter.labels('get', '/widgets/').inc()
     return {
         'widgets': result
     }
@@ -21,9 +27,10 @@ def get_widget(widget_id):
     logger.debug(f'incoming request: GET /widgets/{widget_id}')
     result = db.get_db().get_widget_by_id(widget_id=widget_id)
 
-    if len(result) == 0:
+    if result is None:
         abort(404, description=f'widget with ID {widget_id} not found')
     else:
+        prom_request_counter.labels('get', '/widget/:widget_id').inc()
         return {
             'widget': result
         }
@@ -55,6 +62,7 @@ def new_widget():
 
     # get newly created widget by its id and return it
     result = db.get_db().get_widget_by_id(widget_id=new_id)
+    prom_request_counter.labels('post', '/widgets/').inc()
     return {
         'widget': result
     }

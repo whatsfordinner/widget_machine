@@ -14,7 +14,6 @@ class MockDB:
 
 @patch('api.db.get_db')
 class GetWidgetsTestCase(unittest.TestCase):
-
     def test_get_widgets(self, mock_db):
         from api.widgets.routes import get_widgets
         db_return = [
@@ -66,9 +65,6 @@ class GetWidgetTestCase(unittest.TestCase):
         mock_abort.assert_called_with(404, description='widget with ID 1 not found')
 
 class NewWidgetTestCase(unittest.TestCase):
-    def test_no_widget_data(self):
-        self.assertTrue(False)
-
     def test_malformed_widget_data(self):
         self.assertTrue(False)
 
