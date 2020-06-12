@@ -6,6 +6,8 @@ from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from prometheus_client import make_wsgi_app
 
 def create_app():
+    """ Create the application using Flask's application factory pattern """
+
     configure_logging()
     # creating the application
     app = Flask(__name__, instance_relative_config=True)
@@ -34,6 +36,8 @@ def create_app():
     return app
 
 def build_callable():
+    """ Create a WSGI callable application that incorporate the Prometheus /metrics endpoint """
+
     return DispatcherMiddleware(
         create_app(),
         {
@@ -42,12 +46,18 @@ def build_callable():
     )
 
 def register_blueprints(app):
+    """ Register the blueprints that represent the /widgets and /orders endpoints to the Flask application """
+
     logging.info('registering blueprints')
     from api import widgets, orders
     app.register_blueprint(widgets.bp)
     app.register_blueprint(orders.bp)
 
 def configure_logging():
+    """ Configure Python logging to match the desired format
+        TODO: file logging - should this be handled by uwsgi?
+    """
+
     dictConfig({
         'version': 1,
         'formatters': {'default': {
