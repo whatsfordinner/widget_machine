@@ -17,6 +17,10 @@ services:
       MYSQL_ROOT_PASSWORD: password
     volumes:
       - "./scripts/db_init.sql:/docker-entrypoint-initdb.d/init_script.sql"
+  database_exporter:
+    image: prom/mysqld-exporter
+    environment:
+      DATA_SOURCE_NAME: "exporter:password@(database:3306)"
   rabbitmq:
     image: rabbitmq:3.8-management-alpine
     ports:
@@ -25,3 +29,21 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: widgets
       RABBITMQ_DEFAULT_PASS: password
+  rabbitmq_exporter:
+    image: kbudde/rabbitmq-exporter
+    ports:
+      - "9419:9419"
+    environment:
+      RABBIT_URL: http://rabbitmq:15672
+      RABBIT_USER: widgets
+      RABBIT_PASSWORD: password
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - "./prometheus.yml:/etc/prometheus/prometheus.yml"
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"

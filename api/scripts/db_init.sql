@@ -61,5 +61,7 @@ INSERT INTO orders (
 ;
 
 CREATE USER IF NOT EXISTS 'widgets'@'%' IDENTIFIED BY 'password';
+GRANT ALL ON widgets.* TO 'widgets';
 
-GRANT ALL ON widgets.* TO 'widgets'
+CREATE USER IF NOT EXISTS 'exporter'@'%' IDENTIFIED BY 'password' WITH MAX_USER_CONNECTIONS 3;
+GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'exporter';
