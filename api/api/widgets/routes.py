@@ -37,11 +37,11 @@ def get_widget(widget_id):
 def new_widget():
     with prom_request_timer.labels('post', '/widgets/').time():
         logger.debug('incoming request: POST /widgets')
-        post_data = request.get_json()
+        request_data = request.get_json()
 
         try:
             return {
-                'widget': handlers.new_widget(post_data)
+                'widget': handlers.new_widget(request_data)
             }
         
         except exceptions.WidgetError as err:
@@ -51,10 +51,12 @@ def new_widget():
 def update_widget(widget_id):
     with prom_request_timer.labels('patch', '/widgets/:widget_id').time():
         logger.debug(f'incoming request: PUT /widgets/{widget_id}')
-        abort(501, description='not implemented')
+        request_data = request.get_json()
 
-@bp.route('/<int:widget_id>', methods=['DELETE'])
-def delete_widget(widget_id):
-    with prom_request_timer.labels('delete', '/widgets/:widget_id').time():
-        logger.debug(f'incoming request: DELETE /widgets/{widget_id}')
-        abort(501, description='not implemented')
+        try:
+            return {
+                'widget': handlers.update_widget(widget_id, request_data)
+            }
+        
+        except exceptions.WidgetError as err:
+            abort(err.status_code, err.message)
