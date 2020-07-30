@@ -1,75 +1,160 @@
+import logging
+import os
 import unittest
-from unittest.mock import MagicMock, patch
-from api import db
+import api
+from tests.test_fixtures import db
 
-class MockDB:
-    def __init__(self, return_value):
-        self.return_value = return_value
+
+class RoutesTestCase(unittest.TestCase):
+    def setUp(self):
+        logging.disable(logging.CRITICAL)
+        self.app = api.create_app().test_client()
+        db.purge_db()
+        db.populate_db()
+
+    def tearDown(self):
+        pass
+
+    def test_get_widgets(self):
+        expect = {
+            'widgets': [
+                {
+                    'id': 1,
+                    'name': 'fizzbotter',
+                    'quantity': 2
+                },
+                {
+                    'id': 2,
+                    'name': 'woozle',
+                    'quantity': 5
+                },
+                {
+                    'id': 3,
+                    'name': 'gewgaw',
+                    'quantity': 1
+                },
+                {
+                    'id': 4,
+                    'name': 'trinket',
+                    'quantity': 0
+                }
+            ]
+        }
+
+        result = self.app.get('/widgets/')
+        self.assertEqual(200, result.status_code)
+        self.assertDictEqual(expect, result.get_json())
     
-    def get_widgets(self):
-        return self.return_value
-
-    def get_widget_by_id(self, **kwargs):
-        return self.return_value
-
-@patch('api.db.get_db')
-class GetWidgetsTestCase(unittest.TestCase):
-    def test_get_widgets(self, mock_db):
-        from api.widgets.routes import get_widgets
-        db_return = [
-            {
-                'id': 1,
-                'name': 'foo',
-                'quantity': 1
-            },
-            {
+    def test_get_existing_widget(self):
+        expect = {
+            'widget': {
                 'id': 2,
-                'name': 'bar',
-                'quantity': 2
+                'name': 'woozle',
+                'quantity': 5
             }
-        ]
-
-        expect = {
-            'widgets': db_return
         }
 
-        mock_db.return_value = MockDB(db_return)
-        result = get_widgets()
-        self.assertDictEqual(result, expect)
-    
-@patch('api.widgets.routes.abort')
-@patch('api.db.get_db')
-class GetWidgetTestCase(unittest.TestCase):
-    def test_widget_exists(self, mock_db, mock_abort):
-        from api.widgets.routes import get_widget
-        db_return = {
-            'id': 1,
-            'name': 'foo',
-            'quantity': 3
-        }
+        result = self.app.get('/widgets/2')
+        self.assertEqual(200, result.status_code)
+        self.assertDictEqual(expect, result.get_json())
 
-        expect = {
-            'widget': db_return
-        }
-
-        mock_db.return_value = MockDB(db_return)
-        result = get_widget(1)
-        self.assertDictEqual(result, expect)
-
-    def test_widget_nonexistent(self, mock_db, mock_abort):
-        from api.widgets.routes import get_widget
-        db_return = []
-        mock_db.return_value = MockDB(db_return)
-        result = get_widget(1)
-        self.assertIsNone(result)
-        mock_abort.assert_called_with(404, description='widget with ID 1 not found')
-
-class NewWidgetTestCase(unittest.TestCase):
-    def test_malformed_widget_data(self):
-        self.assertTrue(False)
-
-    def test_widget_already_exists(self):
-        self.assertTrue(False)
+    def test_get_nonexistent_widget(self):
+        result = self.app.get('/widgets/20')
+        self.assertEqual(404, result.status_code)
 
     def test_create_widget(self):
-        self.assertTrue(False)
+        expect = {
+            'widget': {
+                'id': 5,
+                'name': 'geewhiz',
+                'quantity': 5
+            }
+        }
+
+        result = self.app.post(
+            '/widgets/',
+            json = {
+                'name': 'geewhiz',
+                'quantity': 5
+            }
+        )
+
+        self.assertEqual(200, result.status_code)
+        self.assertDictEqual(expect, result.get_json())
+
+    def test_create_widget_without_quantity(self):
+        expect = {
+            'widget': {
+                'id': 5,
+                'name': 'geewhiz',
+                'quantity': 0
+            }
+        }
+
+        result = self.app.post(
+            '/widgets/',
+            json = {
+                'name': 'geewhiz'
+            }
+        )
+
+        self.assertEqual(200, result.status_code)
+        self.assertDictEqual(expect, result.get_json())
+
+    def test_create_widget_with_existing_name(self):
+        result = self.app.post(
+            '/widgets/',
+            json = {
+                'name': 'fizzbotter'
+            }
+        )
+
+        self.assertEqual(422, result.status_code)
+
+    def test_update_existing_widget_quantity(self):
+        expect = {
+            'widget': {
+                'id': 1,
+                'name': 'fizzbotter',
+                'quantity': 6
+            }
+        }
+
+        result = self.app.patch(
+            '/widgets/1',
+            json = {
+                'quantity': 6
+            }
+        )
+
+        self.assertEqual(200, result.status_code)
+        self.assertDictEqual(expect, result.get_json())
+
+    def test_update_existing_widget_name(self):
+        expect = {
+            'widget': {
+                'id': 1,
+                'name': 'finglonger',
+                'quantity': 2
+            }
+        }
+
+        result = self.app.patch(
+            '/widgets/1',
+            json = {
+                'name': 'finglonger'
+            }
+        )
+
+        self.assertEqual(200, result.status_code)
+        self.assertDictEqual(expect, result.get_json())
+
+    def test_update_nonexistent_widget(self):
+        result = self.app.patch(
+            '/widgets/20',
+            json = {
+                'name': 'finglonger'
+            }
+        )
+
+        self.assertEqual(404, result.status_code)
